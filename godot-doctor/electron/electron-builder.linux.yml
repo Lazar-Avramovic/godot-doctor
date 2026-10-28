@@ -1,0 +1,51 @@
+# Linux packaging config. Self-contained on purpose: electron-builder treats a
+# --config file as the whole build config, not an overlay on package.json "build".
+appId: dev.godotdoctor.desktop
+productName: Godot Doctor
+asar: true
+npmRebuild: false
+
+directories:
+  output: dist-linux
+  buildResources: build
+
+files:
+  - src/**/*
+  - package.json
+
+extraResources:
+  - from: ../backend-dist/godot-doctor-backend
+    to: backend
+  - from: build/icons/256x256.png
+    to: icon.png
+
+linux:
+  icon: build/icons
+  category: Development
+  executableName: godot-doctor
+  synopsis: Static analysis for Godot projects
+  description: Local, read-only static analysis workbench for Godot projects.
+  maintainer: Godot Doctor <godot-doctor@localhost>
+  vendor: Godot Doctor
+  syncDesktopName: true
+  artifactName: Godot-Doctor-${version}-${arch}.${ext}
+  target:
+    - AppImage
+    - deb
+    - tar.gz
+  desktop:
+    entry:
+      Name: Godot Doctor
+      GenericName: Godot Project Analyzer
+      Comment: Static analysis for Godot projects
+      Categories: Development;Utility;
+      Keywords: godot;static-analysis;lint;gamedev;
+      StartupNotify: "true"
+      Terminal: "false"
+
+deb:
+  artifactName: godot-doctor_${version}_${arch}.${ext}
+  afterInstall: scripts/linux/after-install.sh
+  afterRemove: scripts/linux/after-remove.sh
+
+afterPack: ./scripts/after-pack.js
