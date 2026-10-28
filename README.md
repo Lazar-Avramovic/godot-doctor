@@ -16,7 +16,7 @@ Current release: **0.3.1**. Full documentation, including install and uninstall 
 ## Install
 
 Grab a packaged build from the
-[releases page](https://github.com/Lazar-Avramovic/Godot-Debugger/releases).
+[releases page](https://github.com/Lazar-Avramovic/godot-doctor/releases).
 
 | Artifact | Platform | What it gives you |
 |---|---|---|
