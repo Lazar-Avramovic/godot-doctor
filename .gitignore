@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+# Desktop build resources are source, not build output.
+!godot-doctor/electron/build/
+!godot-doctor/electron/build/**
+.venv/
+.hawkeye/
+.tmp*/
+bench-out/
+.pytest_cache/
+.coverage
+*.log
+
+# Commercial ventures — deliberately excluded from the open-source tree
+/ventures/
+
+# Local-only components, not published
+/src/
+/tests/
+/docs/
+/scripts/
+/pyproject.toml
+/AGENTS.md

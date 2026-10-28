@@ -1,0 +1,10 @@
+config_version=5
+
+[application]
+
+config/name="Broken Fixture"
+run/main_scene="res://missing.tscn"
+
+[autoload]
+
+Bad="*res://missing_autoload.gd"

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "godot-doctor"
+version = "0.3.1"
+description = "Static analysis for Godot projects"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Lazar" }]
+dependencies = []
+
+[project.scripts]
+godot-doctor = "godot_doctor.cli:main"
+godot-doctor-gui = "godot_doctor.cli:gui_main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+godot_doctor = ["static/*"]
