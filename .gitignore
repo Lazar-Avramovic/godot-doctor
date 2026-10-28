@@ -20,7 +20,9 @@ bench-out/
 # Local-only components, not published
 /src/
 /tests/
-/docs/
-/scripts/
+/docs/ARCHITECTURE.md
+/docs/MEMORY_ENGINE.md
+/scripts/hawkeye.py
+/scripts/run_tests.py
 /pyproject.toml
 /AGENTS.md
