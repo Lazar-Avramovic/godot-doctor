@@ -1,0 +1,78 @@
+{
+  "name": "godot-doctor-desktop",
+  "productName": "Godot Doctor",
+  "version": "0.3.5",
+  "description": "Local static analysis workbench for Godot projects with opt-in fixes",
+  "homepage": "https://example.invalid/godot-doctor",
+  "desktopName": "godot-doctor.desktop",
+  "author": "Godot Doctor",
+  "license": "MIT",
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "icons": "python scripts/make_icon.py",
+    "backend:build": "node scripts/build-backend.js",
+    "pack": "npm run backend:build && electron-builder --dir",
+    "electron:build": "npm run backend:build && electron-builder --win",
+    "electron:build:linux": "node scripts/build-linux.js",
+    "electron:build:linux:dir": "node scripts/build-linux.js --dir"
+  },
+  "devDependencies": {
+    "electron": "45.1.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "dev.godotdoctor.desktop",
+    "productName": "Godot Doctor",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend-dist/godot-doctor-backend",
+        "to": "backend"
+      },
+      {
+        "from": "build/icons/256x256.png",
+        "to": "icon.png"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Godot Doctor",
+      "deleteAppDataOnUninstall": false,
+      "include": "installer.nsh"
+    },
+    "portable": {
+      "artifactName": "Godot-Doctor-${version}-portable.${ext}"
+    }
+  }
+}

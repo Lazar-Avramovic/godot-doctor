@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A local workbench for Godot project diagnostics. Inspect static analysis results without launching Godot; opt-in fixes write only when you apply a preview.">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#101219">
+  <title>Godot Doctor — Project diagnostics</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <div class="app-shell">
+    <aside class="rail" aria-label="Application navigation">
+      <div class="brand">
+        <img class="brand-mark" src="/static/favicon.svg" alt="" width="34" height="34" aria-hidden="true">
+        <span>Godot<br><span class="brand-subtitle">Doctor</span></span>
+      </div>
+      <div>
+        <p class="eyebrow rail-label">Workbench</p>
+        <nav aria-label="Main">
+          <a class="nav-item" href="#workspace" aria-current="page">
+            <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 8h14M8 8v9"/></svg>
+            Diagnostics
+          </a>
+          <button class="nav-item" id="about-open" type="button" aria-haspopup="dialog">
+            <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 9v5M10 6v1"/></svg>
+            Help &amp; about
+          </button>
+        </nav>
+      </div>
+      <div class="rail-footer">
+        <p class="local-label"><span class="local-dot" aria-hidden="true"></span>Local by design</p>
+        <p>Your files stay on <br>this machine.</p>
+        <span id="rail-version" class="version">Godot Doctor</span>
+      </div>
+    </aside>
+
+    <main class="workspace" id="workspace" tabindex="-1">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Workspace / Static analysis</p>
+          <h1>Project diagnostics</h1>
+          <p class="page-description">Find the issues. Understand the source. Get back to building.</p>
+        </div>
+        <div class="header-actions">
+          <div id="theme-switcher" class="theme-switcher" role="group" aria-label="Color theme">
+            <button class="theme-option" type="button" data-theme-choice="system" aria-pressed="true" title="Follow the system appearance">System</button>
+            <button class="theme-option" type="button" data-theme-choice="light" aria-pressed="false" title="Use the light appearance">Light</button>
+            <button class="theme-option" type="button" data-theme-choice="dark" aria-pressed="false" title="Use the dark appearance">Dark</button>
+          </div>
+          <span class="badge local-badge"><span class="local-dot" aria-hidden="true"></span>Local · No internet required</span>
+        </div>
+      </header>
+
+      <section class="panel project-card" aria-labelledby="project-heading">
+        <div class="section-heading">
+          <h2 id="project-heading">Select a project</h2>
+          <span class="badge">Read-only scans</span>
+        </div>
+        <form id="project-form">
+          <label class="field-label" for="project-path">Project path</label>
+          <div class="project-controls">
+            <div id="path-field" class="path-field">
+              <input id="project-path" class="path-input" type="text" placeholder="/home/you/projects/my-game" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="path-hint" required disabled>
+              <button id="native-folder" class="path-folder-button" type="button" aria-label="Find a Godot project" title="Find project.godot…" aria-haspopup="dialog">
+                <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 5a1 1 0 0 1 1-1h5l2 2h7a1 1 0 0 1 1 1v9H2Z"/></svg>
+              </button>
+            </div>
+            <button id="scan-button" class="button button-primary" type="submit" disabled>
+              <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.25"/><path d="m12.5 12.5 4 4" stroke-linecap="round"/></svg>
+              <span id="scan-button-label">Run scan</span>
+            </button>
+          </div>
+          <p id="path-hint" class="hint">Paste a project folder, nested folder, or file path. The folder button finds project.godot and selects its folder. Native Linux and Windows paths are supported.</p>
+        </form>
+      </section>
+
+      <section id="status-banner" class="status-banner" data-state="connecting" aria-label="Scan status" tabindex="-1">
+        <span id="status-symbol" class="status-symbol is-loading" aria-hidden="true"></span>
+        <div class="status-copy">
+          <div role="status" aria-live="polite" aria-atomic="true">
+            <p id="status-message" class="status-title">Connecting to the local analyzer</p>
+            <p id="status-detail" class="status-detail">Restoring this session. No scan starts automatically.</p>
+          </div>
+          <p id="scan-target" class="scan-target mono" hidden></p>
+          <button id="retry-connection" class="button button-small" type="button" hidden>Retry connection</button>
+        </div>
+        <p id="run-meta" class="run-meta"></p>
+      </section>
+
+      <section class="stats" aria-label="Scan summary">
+        <article class="panel stat-card stat-errors">
+          <div><h2 class="stat-label"><span class="stat-mark" aria-hidden="true"></span>Errors</h2><span id="error-count" class="stat-value">—</span></div>
+          <span class="stat-note">Needs attention</span>
+        </article>
+        <article class="panel stat-card stat-warnings">
+          <div><h2 class="stat-label"><span class="stat-mark" aria-hidden="true"></span>Warnings</h2><span id="warning-count" class="stat-value">—</span></div>
+          <span class="stat-note">Worth a closer look</span>
+        </article>
+        <article class="panel stat-card">
+          <div><h2 class="stat-label"><span class="stat-mark" aria-hidden="true"></span>Files analyzed</h2><span id="file-count" class="stat-value">—</span></div>
+          <span id="indexed-count" class="stat-note">Waiting for a scan</span>
+        </article>
+      </section>
+
+      <div class="report-context">
+        <span id="report-path-label" class="eyebrow">Report project</span>
+        <span id="report-project" class="report-project mono">Available after a completed scan</span>
+      </div>
+      <p id="action-feedback" class="feedback action-feedback" role="status" aria-live="polite"></p>
+      <div class="workbench">
+        <section class="panel diagnostics-panel" aria-labelledby="diagnostics-heading">
+          <div class="panel-heading">
+            <div class="heading-label"><h2 id="diagnostics-heading" tabindex="-1">Diagnostics</h2><span id="diagnostic-count" class="count-badge" aria-label="Total diagnostics">—</span></div>
+            <div class="export-actions" role="group" aria-label="Export complete report">
+              <button id="export-json" class="button button-quiet button-small" type="button" disabled>Export JSON</button>
+              <button id="export-text" class="button button-quiet button-small" type="button" disabled>Export text</button>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <div class="severity-filters" role="group" aria-label="Filter diagnostics by severity">
+              <button class="filter-button" type="button" data-severity="all" aria-pressed="true" disabled>All <span class="filter-count">—</span></button>
+              <button class="filter-button" type="button" data-severity="error" aria-pressed="false" disabled>Errors <span class="filter-count">—</span></button>
+              <button class="filter-button" type="button" data-severity="warning" aria-pressed="false" disabled>Warnings <span class="filter-count">—</span></button>
+              <button class="filter-button" type="button" data-severity="info" aria-pressed="false" disabled>Info <span class="filter-count">—</span></button>
+            </div>
+            <div class="search-row">
+              <label class="sr-only" for="diagnostic-search">Search by message, file, or rule</label>
+              <input id="diagnostic-search" type="search" placeholder="Search message, file, or rule…" autocomplete="off" spellcheck="false" disabled>
+              <button id="clear-filters" class="button button-quiet button-small" type="button" disabled>Clear filters</button>
+            </div>
+          </div>
+          <p id="list-caption" class="list-caption" role="status" aria-live="polite">No report yet</p>
+          <ol id="diagnostic-list" class="diagnostic-list" aria-label="Diagnostics"></ol>
+          <div id="list-empty" class="empty-state" data-kind="idle">
+            <span id="list-empty-mark" class="empty-mark" aria-hidden="true">[ ]</span>
+            <h3 id="list-empty-title">Your next clean build starts here</h3>
+            <p id="list-empty-detail">Choose a project and run a scan. Diagnostics will appear here, with the source context to help you investigate.</p>
+          </div>
+          <nav id="pagination" class="pagination" aria-label="Diagnostic pages" hidden>
+            <button id="previous-page" class="button button-quiet button-small" type="button">Previous</button>
+            <span id="page-caption"></span>
+            <button id="next-page" class="button button-quiet button-small" type="button">Next</button>
+          </nav>
+        </section>
+
+        <section class="panel inspector" aria-labelledby="inspector-heading">
+          <div class="panel-heading">
+            <h2 id="inspector-heading" tabindex="-1">Source inspector</h2>
+            <a href="#diagnostics-heading">Back to list ↑</a>
+          </div>
+          <div id="inspector-empty" class="empty-state">
+            <span class="empty-mark" aria-hidden="true">&lt;/&gt;</span>
+            <h3 id="inspector-empty-title">Context, not guesswork</h3>
+            <p id="inspector-empty-detail">Select a diagnostic to see its message, location, source excerpt, and related files. Source is always read-only.</p>
+          </div>
+          <div id="inspector-content" hidden>
+            <div class="inspector-body">
+              <div class="row-top"><span id="detail-severity" class="severity"></span><code id="detail-rule" class="row-rule"></code></div>
+              <h3 id="detail-message" class="detail-message"></h3>
+              <div id="rule-help" class="rule-help" hidden>
+                <p><strong>Why it matters</strong> <span id="rule-why"></span></p>
+                <p><strong>How to fix it</strong> <span id="rule-fix"></span></p>
+              </div>
+              <span class="eyebrow">Diagnostic location</span>
+              <code id="detail-location" class="detail-location"></code>
+              <div class="detail-actions">
+                <button id="copy-location" class="button button-quiet button-small" type="button">Copy location</button>
+                <span id="copy-feedback" class="feedback" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+            <section id="fix-section" class="fix-section" aria-labelledby="fix-heading" hidden>
+              <div class="source-heading"><h3 id="fix-heading">Automatic fix</h3><span class="badge">Opt-in</span></div>
+              <div class="fix-body">
+                <p id="fix-copy" class="hint">Repairs the comment lines that Godot's config parser folds into the next key. Nothing is written until you apply the preview.</p>
+                <button id="fix-preview" class="button button-quiet button-small" type="button">Preview automatic fix</button>
+                <div id="fix-preview-body" hidden>
+                  <p id="fix-summary" class="hint"></p>
+                  <ul id="fix-changes" class="fix-changes" aria-label="Planned fixes"></ul>
+                  <p id="fix-skipped-copy" class="hint fix-skipped-copy" hidden></p>
+                  <ul id="fix-skipped" class="fix-skipped" aria-label="Lines that need a manual edit" hidden></ul>
+                  <div class="fix-actions">
+                    <button id="fix-apply" class="button button-primary button-small" type="button" disabled>Apply changes</button>
+                    <span id="fix-feedback" class="feedback" role="status" aria-live="polite"></span>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section class="source-section" aria-labelledby="source-heading">
+              <div class="source-heading"><h3 id="source-heading">Source excerpt</h3><span class="badge">Read-only</span></div>
+              <code id="source-file" class="source-file"></code>
+              <div id="source-feedback" class="source-feedback" role="status" aria-live="polite"></div>
+              <button id="source-retry" class="button button-quiet button-small" type="button" hidden>Retry source</button>
+              <pre id="source-code" class="source-code" tabindex="0" role="region" aria-label="Read-only source excerpt" hidden><code id="source-lines"></code></pre>
+              <p id="excerpt-note" class="excerpt-note" hidden></p>
+            </section>
+            <section id="related-section" class="related-section" aria-labelledby="related-heading" hidden>
+              <h3 id="related-heading">Related locations</h3>
+              <p class="hint">Open an excerpt at line 1. The diagnostic above stays selected.</p>
+              <div id="related-list" class="related-list"></div>
+            </section>
+          </div>
+        </section>
+      </div>
+      <footer class="workspace-footer"><span>Read-only scans. Fixes write only when you choose them. No Godot launch.</span><span>Same analyzer and fixes as the CLI.</span></footer>
+      <noscript><p class="panel project-card">JavaScript is required for the local workbench. Enable it for this local address, or use the Godot Doctor CLI.</p></noscript>
+    </main>
+  </div>
+
+  <dialog id="directory-dialog" class="dialog" aria-labelledby="directory-title" aria-describedby="directory-description">
+    <header class="panel-heading"><h2 id="directory-title">Choose a project folder</h2><form method="dialog"><button class="button button-quiet button-small" type="submit" aria-label="Close folder picker">Close</button></form></header>
+    <div class="dialog-body">
+      <p id="directory-description" class="hint">Browse only the location you choose. Selecting a folder does not start a scan.</p>
+      <form id="directory-form">
+        <label class="field-label" for="directory-path">Folder location</label>
+        <div class="browse-controls">
+          <button id="directory-up" class="button" type="button" disabled>↑ Up</button>
+          <input id="directory-path" class="path-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" required autofocus>
+          <button id="directory-go" class="button" type="submit">Go</button>
+        </div>
+      </form>
+      <nav id="root-shortcuts" class="root-shortcuts" aria-label="Location shortcuts"></nav>
+      <div id="browse-current" class="browse-current" hidden><code id="browse-current-path"></code><span id="browse-project-badge" class="badge project-badge" hidden>Godot project</span></div>
+      <p id="browse-notice" class="browse-notice" role="status" aria-live="polite"></p>
+      <button id="directory-retry" class="button button-small" type="button" hidden>Retry folder</button>
+      <ul id="directory-list" class="directory-list" aria-label="Subfolders"></ul>
+    </div>
+    <footer class="dialog-footer">
+      <form method="dialog"><button class="button button-quiet" type="submit">Cancel</button></form>
+      <button id="directory-select" class="button button-primary" type="button" disabled>Select this folder</button>
+    </footer>
+  </dialog>
+
+  <dialog id="about-dialog" class="dialog" aria-labelledby="about-title">
+    <header class="panel-heading"><h2 id="about-title">Your local second pair of eyes</h2><form method="dialog"><button class="button button-quiet button-small" type="submit" autofocus>Close</button></form></header>
+    <div class="dialog-body help-copy">
+      <section><h3 id="about-shell-title">Godot Doctor, in your browser</h3><p id="about-shell-copy">This workbench uses the same static analyzer as the CLI. It reads selected local project files without launching Godot. Scans never change your source; the automatic fix writes only when you preview and apply it. JSON and text exports include the full report, regardless of filters.</p></section>
+      <section id="about-launch"><h3>Launch it from a terminal</h3><p>Start Godot Doctor from a terminal in your installed environment. Paste a native Linux or Windows path, or use the folder picker.</p><code class="launch-command">python -m godot_doctor --gui</code></section>
+      <section><h3>Local files. Local session.</h3><p id="about-session-copy">No internet connection, account, or external service is needed. Browsing lists only the folder you request. Source excerpts are restricted to files in the current scan report. Closing this tab does not stop the server; stop it from the launching terminal when finished.</p></section>
+      <section><h3>Automatic fixes are opt-in</h3><p>When a config-parse-error is selectable, the inspector can preview a repair. Godot’s ConfigFile treats only <code>;</code> as a comment, so a <code>#</code> line is folded into the next key and can silently lose a setting. The fix rewrites leading <code>#</code> lines to <code>;</code> in <code>project.godot</code>. Nothing runs automatically: preview first, then apply. Each previewed line is re-verified before writing.</p></section>
+      <section><h3>What static analysis cannot see</h3><p>Importer failures, such as a corrupt or unsupported image, and GDScript compile errors are engine-side. Run <code>godot --headless --import</code> or open the project in the Godot editor to surface them. Binary resources, custom loaders and generated caches stay outside the analyzer.</p></section>
+      <section id="rule-reference"><h3>What the analyzer checks</h3><p class="hint">The same diagnostic rules the CLI reports. Select a diagnostic in the workbench to see its remediation.</p><ul id="rule-list" class="rule-list" aria-label="Diagnostic rules"></ul></section>
+      <section><h3>Static analysis is not runtime validation</h3><p>A clean report means the analyzer found no diagnostics, not that your game is guaranteed to work. Dynamic behavior, engine-specific behavior, and issues outside the analyzer’s rules still need testing in Godot.</p></section>
+      <section><h3>Filesystem compatibility</h3><p>Folders that cannot be inspected are marked unavailable. Undecodable Linux filename bytes are displayed as escaped code units; JSON exports preserve them, while text exports show explicit backslash escapes.</p></section>
+      <p id="about-version" class="feedback">Version information is available when the local server connects.</p>
+    </div>
+    <footer class="dialog-footer"><form method="dialog"><button class="button button-primary" type="submit">Back to workbench</button></form></footer>
+  </dialog>
+</body>
+</html>

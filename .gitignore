@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+# Desktop build resources are source, not build output.
+!godot-doctor/electron/build/
+!godot-doctor/electron/build/**
+.venv/
+.tmp*/
+bench-out/
+.pytest_cache/
+.coverage
+*.log
